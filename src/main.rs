@@ -13,7 +13,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let index = 0; //< face index in the font file
     let hb_font = hb::Font::new(hb::Face::from_bytes(&font_data, index));
 
-    let buffer = hb::UnicodeBuffer::new().add_str("Hello World!");
+    let buffer = hb::UnicodeBuffer::new().add_str("Hêllo World!");
     let output = hb::shape(&hb_font, buffer, &[]);
 
     let positions = output.get_glyph_positions();
@@ -21,7 +21,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let ab_font = ab::FontRef::try_from_slice(&font_data)?;
 
-    let mut canvas: RgbaImage = image::ImageBuffer::new(300, 300);
+    let width = 300;
+    let height = 300;
+
+    let mut canvas: RgbaImage = image::ImageBuffer::new(width, height);
+    imageproc::drawing::draw_filled_rect_mut(
+        &mut canvas,
+        imageproc::rect::Rect::at(0, 0).of_size(width, height),
+        image::Rgba([255, 255, 255, 255]),
+    );
+
     let mut caret = 0;
 
     for (position, info) in positions.iter().zip(infos) {
@@ -36,23 +45,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             gid, cluster, x_advance, x_offset, y_offset
         );
 
-        let x: ab_glyph::Glyph = ab_glyph::GlyphId(gid as u16).with_scale(60.0);
+        let ab_scale = ab_font.pt_to_px_scale(60.0).unwrap().x;
+        let hb_scale = hb_font.scale().0;
 
-        let Some(y) = ab_font.outline_glyph(x) else {
+        let advance = ab_scale * caret as f32 / hb_scale as f32;
+
+        let gl = ab_glyph::GlyphId(gid as u16)
+            .with_scale_and_position(ab_scale, (advance, y_offset as f32));
+
+        let Some(y) = ab_font.outline_glyph(gl) else {
+            // gl is whitespace
+            caret += x_advance;
             continue;
         };
 
-        let Some(units_per_em) = ab_font.units_per_em() else {
-            continue;
-        };
-
-        let foo = ab_font.pt_to_px_scale(60.0).unwrap().x;
-
-        let advance = foo * caret as f32 / units_per_em;
+        let bb = y.px_bounds();
 
         y.draw(|px, py, pv| {
-            let px = px as i32 + 15 + advance as i32;
-            let py = py as i32 + 15;
+            let px = px as f32 + 15.0 + bb.min.x;
+            let py = py as f32 + bb.min.y + 100.0;
 
             let pixel = canvas.get_pixel(px as u32, py as u32).to_owned();
             let color = image::Rgba([0, 0, 0, 255]);
@@ -62,6 +73,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         caret += x_advance;
     }
+
+    // USELESS BLUE LINE
     for i in 0..15 {
         canvas.draw_pixel(i, i, image::Rgba([0, 0, 255, 255]));
         canvas.draw_pixel(i + 1, i, image::Rgba([0, 0, 255, 255]));
