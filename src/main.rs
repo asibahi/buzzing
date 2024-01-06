@@ -49,8 +49,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let ab_scale = ab_font.pt_to_px_scale(60.0).unwrap().x;
         let hb_scale = hb_font.scale().0;
 
-        let horizontal = ab_scale * caret as f32 / hb_scale as f32;
-        let vertical = ab_font.as_scaled(ab_scale).ascent();
+        let horizontal = ab_scale * (caret + x_offset) as f32 / hb_scale as f32;
+        let vertical =
+            ab_font.as_scaled(ab_scale).ascent() + (ab_scale * y_offset as f32 / hb_scale as f32);
 
         let gl =
             ab_glyph::GlyphId(gid as u16).with_scale_and_position(ab_scale, (horizontal, vertical));
