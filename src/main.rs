@@ -1,5 +1,6 @@
 // #![allow(unused)]
 
+use ab::ScaleFont;
 use ab_glyph::{self as ab, Font as _};
 use harfbuzz_rs as hb;
 use image::RgbaImage;
@@ -48,10 +49,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let ab_scale = ab_font.pt_to_px_scale(60.0).unwrap().x;
         let hb_scale = hb_font.scale().0;
 
-        let advance = ab_scale * caret as f32 / hb_scale as f32;
+        let horizontal = ab_scale * caret as f32 / hb_scale as f32;
+        let vertical = ab_font.as_scaled(ab_scale).ascent();
 
-        let gl = ab_glyph::GlyphId(gid as u16)
-            .with_scale_and_position(ab_scale, (advance, y_offset as f32));
+        let gl =
+            ab_glyph::GlyphId(gid as u16).with_scale_and_position(ab_scale, (horizontal, vertical));
 
         let Some(y) = ab_font.outline_glyph(gl) else {
             // gl is whitespace
@@ -62,8 +64,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let bb = y.px_bounds();
 
         y.draw(|px, py, pv| {
-            let px = px as f32 + 15.0 + bb.min.x;
-            let py = py as f32 + bb.min.y + 100.0;
+            let px = px as f32 + bb.min.x + 15.0;
+            let py = py as f32 + bb.min.y + 15.0;
 
             let pixel = canvas.get_pixel(px as u32, py as u32).to_owned();
             let color = image::Rgba([0, 0, 0, 255]);
