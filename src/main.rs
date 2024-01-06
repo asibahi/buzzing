@@ -6,11 +6,11 @@ use imageproc::drawing::Canvas as _;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // let path = "YanoneKaffeesatz-Medium.ttf";
-    let path = "NotoNaskhArabic-Bold.ttf";
-    // let path = "Gulzar-Regular.ttf";
+    // let path = "NotoNaskhArabic-Bold.ttf";
+    let path = "Gulzar-Regular.ttf";
 
-    let buffer = hb::UnicodeBuffer::new().add_str("Hêllo World!");
-    // let buffer = hb::UnicodeBuffer::new().add_str("أهلا بالعالم");
+    // let buffer = hb::UnicodeBuffer::new().add_str("Hêllo World!");
+    let buffer = hb::UnicodeBuffer::new().add_str("أهلا بالعالم");
 
     let font_data = std::fs::read(path)?;
 
@@ -36,6 +36,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut caret = 0;
 
+    let ab_scale = ab_font.pt_to_px_scale(60.0).unwrap();
+    let hb_scale = hb_font.scale();
+
+    dbg!(ab_scale);
+    dbg!(hb_font.scale());
+
+    let conversion = ab_scale.x / hb_scale.0 as f32;
+
     for (position, info) in positions.iter().zip(infos) {
         let gid = info.codepoint;
         let cluster = info.cluster;
@@ -48,11 +56,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             gid, cluster, x_advance, x_offset, y_offset
         );
 
-        let ab_scale = ab_font.pt_to_px_scale(60.0).unwrap();
-        let hb_scale = hb_font.scale();
-
-        let horizontal = ab_scale.x * (caret + x_offset) as f32 / hb_scale.0 as f32;
-        let vertical = ab_scale.y * y_offset as f32 / hb_scale.1 as f32 +
+        let horizontal = conversion * (caret + x_offset) as f32;
+        let vertical = conversion * -y_offset as f32 +
             // to push the line down.
             ab_font.as_scaled(ab_scale).ascent();
 
