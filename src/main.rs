@@ -1,9 +1,7 @@
 // #![allow(unused)]
 
-use ab::ScaleFont;
-use ab_glyph::{self as ab, Font as _};
+use ab_glyph::{self as ab, Font as _, ScaleFont as _};
 use harfbuzz_rs as hb;
-use image::RgbaImage;
 use imageproc::drawing::Canvas as _;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -25,7 +23,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let width = 300;
     let height = 300;
 
-    let mut canvas: RgbaImage = image::ImageBuffer::new(width, height);
+    let mut canvas: image::RgbaImage = image::ImageBuffer::new(width, height);
     imageproc::drawing::draw_filled_rect_mut(
         &mut canvas,
         imageproc::rect::Rect::at(0, 0).of_size(width, height),
