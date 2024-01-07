@@ -37,12 +37,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut caret = 0;
 
     let ab_scale = ab_font.pt_to_px_scale(60.0).unwrap();
-    let hb_scale = hb_font.scale();
 
     dbg!(ab_scale);
-    dbg!(hb_font.scale());
 
-    let conversion = ab_scale.x / hb_scale.0 as f32;
+    let ab_scaled_font = ab_font.as_scaled(ab_scale);
+    let scale_factor = ab_scaled_font.scale_factor();
+    dbg!(scale_factor);
+
+    let ascent = ab_scaled_font.ascent();
 
     for (position, info) in positions.iter().zip(infos) {
         let gid = info.codepoint;
@@ -56,10 +58,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             gid, cluster, x_advance, x_offset, y_offset
         );
 
-        let horizontal = conversion * (caret + x_offset) as f32;
-        let vertical = conversion * -y_offset as f32 +
-            // to push the line down.
-            ab_font.as_scaled(ab_scale).ascent();
+        let horizontal = (caret + x_offset) as f32 * scale_factor.horizontal;
+        let vertical = ascent - (y_offset as f32 * scale_factor.vertical);
 
         let gl = ab_glyph::GlyphId(gid as u16)
             .with_scale_and_position(ab_scale, ab_glyph::point(horizontal, vertical));
