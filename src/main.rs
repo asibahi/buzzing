@@ -1,5 +1,7 @@
 // #![allow(unused)]
 
+use std::path::Path;
+
 use ab_glyph::{self as ab, Font as _, ScaleFont as _};
 use harfbuzz_rs as hb;
 use imageproc::drawing::Canvas as _;
@@ -7,7 +9,8 @@ use imageproc::drawing::Canvas as _;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // let path = "YanoneKaffeesatz-Medium.ttf";
     // let path = "NotoNaskhArabic-Bold.ttf";
-    let path = "Gulzar-Regular.ttf";
+    // let path = "Gulzar-Regular.ttf";
+    let path = "NotoSansArabic-VariableFont_wdth,wght.ttf";
 
     // let buffer = hb::UnicodeBuffer::new().add_str("Hêllo World!");
     let buffer = hb::UnicodeBuffer::new().add_str("أهلا بالعالم");
@@ -17,7 +20,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let index = 0; //< face index in the font file
     let hb_font = hb::Font::new(hb::Face::from_bytes(&font_data, index));
 
-    let output = hb::shape(&hb_font, buffer, &[]);
+    let features = [hb::Feature::new(b"wdth", 100, 0..)];
+
+    let output = hb::shape(&hb_font, buffer, &features);
 
     let positions = output.get_glyph_positions();
     let infos = output.get_glyph_infos();
@@ -102,12 +107,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         canvas.draw_pixel(i, i + 1, image::Rgba([0, 0, 255, 255]));
     }
 
-    let save_file = directories::UserDirs::new()
-        .expect("couldn't get user directories")
-        .desktop_dir()
-        .expect("couldn't get downloads directory")
-        .to_path_buf()
-        .join("fff.png");
+    // let save_file = directories::UserDirs::new()
+    //     .expect("couldn't get user directories")
+    //     .desktop_dir()
+    //     .expect("couldn't get downloads directory")
+    //     .to_path_buf()
+    //     .join("fff.png");
+
+    let save_file = Path::new("ffg.png");
 
     canvas.save(save_file)?;
 
