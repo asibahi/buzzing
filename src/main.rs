@@ -18,11 +18,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let font_data = std::fs::read(path)?;
 
     let index = 0; //< face index in the font file
-    let hb_font = hb::Font::new(hb::Face::from_bytes(&font_data, index));
+    let mut hb_font = hb::Font::new(hb::Face::from_bytes(&font_data, index));
+    
+    hb_font.set_variations(&[hb::Variation::new(b"wdth", 100.0)]); // variable font
 
-    let features = [hb::Feature::new(b"wdth", 100, 0..)];
-
-    let output = hb::shape(&hb_font, buffer, &features);
+    let output = hb::shape(&hb_font, buffer, &[]);
 
     let positions = output.get_glyph_positions();
     let infos = output.get_glyph_infos();
@@ -43,11 +43,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let ab_scale = ab_font.pt_to_px_scale(60.0).unwrap();
 
-    dbg!(ab_scale);
-
     let ab_scaled_font = ab_font.as_scaled(ab_scale);
     let scale_factor = ab_scaled_font.scale_factor();
-    dbg!(scale_factor);
 
     let ascent = ab_scaled_font.ascent();
 
@@ -114,7 +111,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     //     .to_path_buf()
     //     .join("fff.png");
 
-    let save_file = Path::new("ffg.png");
+    let save_file = Path::new("fff.png");
 
     canvas.save(save_file)?;
 
