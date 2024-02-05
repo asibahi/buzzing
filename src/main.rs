@@ -107,13 +107,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         canvas.draw_pixel(i, i + 1, image::Rgba([0, 0, 255, 255]));
     }
 
-    // let save_file = directories::UserDirs::new()
-    //     .expect("couldn't get user directories")
-    //     .desktop_dir()
-    //     .expect("couldn't get downloads directory")
-    //     .to_path_buf()
-    //     .join("fff.png");
-
     let save_file = Path::new("fff.png");
 
     canvas.save(save_file)?;

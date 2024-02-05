@@ -13,4 +13,3 @@ image = { version = "0.24.7", default-features = false, features = [
     "jpeg_rayon",
 ] }
 imageproc = "0.23"
-directories = "5.0"
